@@ -168,11 +168,13 @@ function AskStep({ onYes }: { onYes: () => void }) {
   const moveNo = useCallback(() => {
     const count = noCount + 1;
     setNoCount(count);
-    setYesScale((s) => Math.min(s + 0.15, 2));
-    const range = 120 + count * 10;
+    // Yes grows aggressively — at scale 6 it fills the whole card
+    setYesScale((s) => Math.min(s + 0.4, 6));
+    // No escape range is capped so Yes can eventually catch it
+    const range = Math.min(60 + count * 8, 100);
     setNoPos({
       x: (Math.random() - 0.5) * range,
-      y: (Math.random() - 0.5) * range,
+      y: (Math.random() - 0.5) * range * 0.6,
     });
   }, [noCount]);
 

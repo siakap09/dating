@@ -163,11 +163,18 @@ const TEASE_MESSAGES = [
 function AskStep({ onYes }: { onYes: () => void }) {
   const [noCount, setNoCount] = useState(0);
   const [yesScale, setYesScale] = useState(1);
+  const [noPos, setNoPos] = useState({ x: 0, y: 0 });
 
   const handleNoInteract = useCallback(() => {
     const count = noCount + 1;
     setNoCount(count);
     setYesScale((s) => Math.min(s + 0.3, 4.5));
+    // Move No away but keep it within a shrinking range so Yes catches up
+    const range = Math.max(60 - count * 8, 0);
+    setNoPos({
+      x: (Math.random() - 0.5) * range * 2,
+      y: (Math.random() - 0.5) * range,
+    });
   }, [noCount]);
 
   const noLabel = NO_MESSAGES[Math.min(noCount, NO_MESSAGES.length - 1)] ?? "Nope!";
@@ -180,14 +187,16 @@ function AskStep({ onYes }: { onYes: () => void }) {
       <p className="text-gray-400 text-sm mb-10">I promise to be a really good one 🤝</p>
 
       <div className="relative flex items-center justify-center gap-4 h-20 overflow-hidden">
-        {/* No — stays in place, gets swallowed by growing Yes */}
-        <button
+        {/* No — runs away but movement range shrinks; eventually swallowed by Yes */}
+        <motion.button
+          animate={{ x: noPos.x, y: noPos.y }}
+          transition={{ type: "spring", stiffness: 500, damping: 20 }}
           onMouseEnter={handleNoInteract}
           onTouchStart={handleNoInteract}
           className="px-7 py-3 rounded-full bg-pink-100 text-pink-400 font-bold text-lg shadow-md"
         >
           {noLabel}
-        </button>
+        </motion.button>
 
         {/* Yes — grows bigger each time No is hovered, eventually covers it */}
         <motion.button

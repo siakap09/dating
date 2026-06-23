@@ -161,18 +161,18 @@ const TEASE_MESSAGES = [
 ];
 
 function AskStep({ onYes }: { onYes: () => void }) {
+  const [noPos, setNoPos] = useState({ x: 0, y: 0 });
   const [noCount, setNoCount] = useState(0);
   const [yesScale, setYesScale] = useState(1);
-  const [noPos, setNoPos] = useState({ x: 0, y: 0 });
 
-  const handleNoInteract = useCallback(() => {
+  const moveNo = useCallback(() => {
     const count = noCount + 1;
     setNoCount(count);
-    setYesScale((s) => Math.min(s + 0.25, 4));
-    const range = 100 + count * 15;
+    setYesScale((s) => Math.min(s + 0.15, 2));
+    const range = 120 + count * 10;
     setNoPos({
       x: (Math.random() - 0.5) * range,
-      y: (Math.random() - 0.5) * range * 0.6,
+      y: (Math.random() - 0.5) * range,
     });
   }, [noCount]);
 
@@ -186,23 +186,23 @@ function AskStep({ onYes }: { onYes: () => void }) {
       <p className="text-gray-400 text-sm mb-10">I promise to be a really good one 🤝</p>
 
       <div className="relative flex items-center justify-center gap-4 h-16">
-        {/* Yes — grows bigger each time No is hovered */}
+        {/* Yes — grows slightly bigger each time No is hovered */}
         <motion.button
           onClick={onYes}
           animate={{ scale: yesScale }}
           transition={{ type: "spring", stiffness: 400, damping: 15 }}
-          className="relative z-10 px-7 py-3 rounded-full bg-green-400 hover:bg-green-500 text-white font-bold text-lg shadow-md flex items-center gap-2"
+          className="px-7 py-3 rounded-full bg-green-400 hover:bg-green-500 text-white font-bold text-lg shadow-md transition-colors flex items-center gap-2"
         >
           Yes 🎉
         </motion.button>
 
-        {/* No — runs away; Yes eventually grows large enough to cover it */}
+        {/* No — runs away */}
         <motion.button
           animate={{ x: noPos.x, y: noPos.y }}
           transition={{ type: "spring", stiffness: 500, damping: 20 }}
-          onMouseEnter={handleNoInteract}
-          onTouchStart={handleNoInteract}
-          className="px-7 py-3 rounded-full bg-pink-100 text-pink-400 font-bold text-lg shadow-md"
+          onMouseEnter={moveNo}
+          onTouchStart={moveNo}
+          className="px-7 py-3 rounded-full bg-pink-100 hover:bg-pink-200 text-pink-400 font-bold text-lg shadow-md transition-colors"
         >
           {noLabel}
         </motion.button>

@@ -164,22 +164,34 @@ function AskStep({ onYes }: { onYes: () => void }) {
   const [noPos, setNoPos] = useState({ x: 0, y: 0 });
   const [noCount, setNoCount] = useState(0);
   const [yesScale, setYesScale] = useState(1);
+  const yesRef = useRef<HTMLButtonElement>(null);
+  const noRef = useRef<HTMLButtonElement>(null);
 
   const moveNo = useCallback(() => {
     const count = noCount + 1;
     setNoCount(count);
-    // Yes grows aggressively — at scale 6 it fills the whole card
-    setYesScale((s) => Math.min(s + 0.4, 6));
-    // No escape range is capped so Yes can eventually catch it
-    const range = Math.min(60 + count * 8, 100);
-    setNoPos({
-      x: (Math.random() - 0.5) * range,
-      y: (Math.random() - 0.5) * range * 0.6,
-    });
+    setYesScale((s) => Math.min(s + 0.15, 2));
+
+    if (count >= 8 && yesRef.current && noRef.current) {
+      // Slide No directly behind Yes using real DOM positions
+      const yr = yesRef.current.getBoundingClientRect();
+      const nr = noRef.current.getBoundingClientRect();
+      setNoPos((prev) => ({
+        x: prev.x + (yr.left + yr.width / 2 - (nr.left + nr.width / 2)),
+        y: prev.y + (yr.top + yr.height / 2 - (nr.top + nr.height / 2)),
+      }));
+    } else {
+      const range = 80 + count * 8;
+      setNoPos({
+        x: (Math.random() - 0.5) * range,
+        y: (Math.random() - 0.5) * range * 0.5,
+      });
+    }
   }, [noCount]);
 
   const noLabel = NO_MESSAGES[Math.min(noCount, NO_MESSAGES.length - 1)] ?? "Nope!";
   const teaseMsg = TEASE_MESSAGES[Math.min(noCount, TEASE_MESSAGES.length - 1)];
+  const hiddenBehindYes = noCount >= 8;
 
   return (
     <Card>
@@ -188,22 +200,26 @@ function AskStep({ onYes }: { onYes: () => void }) {
       <p className="text-gray-400 text-sm mb-10">I promise to be a really good one 🤝</p>
 
       <div className="relative flex items-center justify-center gap-4 h-16">
-        {/* Yes — grows slightly bigger each time No is hovered */}
+        {/* Yes — sits on top once No hides behind it */}
         <motion.button
+          ref={yesRef}
           onClick={onYes}
           animate={{ scale: yesScale }}
           transition={{ type: "spring", stiffness: 400, damping: 15 }}
+          style={{ position: "relative", zIndex: 10 }}
           className="px-7 py-3 rounded-full bg-green-400 hover:bg-green-500 text-white font-bold text-lg shadow-md transition-colors flex items-center gap-2"
         >
           Yes 🎉
         </motion.button>
 
-        {/* No — runs away */}
+        {/* No — runs away, then slides behind Yes on hover 8 */}
         <motion.button
+          ref={noRef}
           animate={{ x: noPos.x, y: noPos.y }}
           transition={{ type: "spring", stiffness: 500, damping: 20 }}
-          onMouseEnter={moveNo}
-          onTouchStart={moveNo}
+          onMouseEnter={hiddenBehindYes ? undefined : moveNo}
+          onTouchStart={hiddenBehindYes ? undefined : moveNo}
+          style={{ position: "relative", zIndex: 5 }}
           className="px-7 py-3 rounded-full bg-pink-100 hover:bg-pink-200 text-pink-400 font-bold text-lg shadow-md transition-colors"
         >
           {noLabel}

@@ -123,7 +123,7 @@ function EnvelopeStep({ onOpen }: { onOpen: () => void }) {
           transition={{ duration: 0.5 }}
           className="text-8xl select-none"
         >
-          {opened ? "💌" : "✉️"}
+          {opened ? "📬" : "✉️"}
         </motion.div>
         <div>
           <h1 className="text-2xl font-black text-pink-500 mb-2">You&apos;ve got a letter!</h1>
@@ -136,7 +136,7 @@ function EnvelopeStep({ onOpen }: { onOpen: () => void }) {
           disabled={opened}
           className="px-8 py-4 rounded-2xl bg-gradient-to-r from-pink-400 to-purple-400 text-white font-bold text-lg shadow-lg disabled:opacity-60 transition-all"
         >
-          {opened ? "Opening... 💫" : "Open the envelope 💌"}
+          {opened ? "Opening... 💫" : "Open the envelope ✨"}
         </motion.button>
       </motion.div>
     </Card>
@@ -161,18 +161,13 @@ const TEASE_MESSAGES = [
 ];
 
 function AskStep({ onYes }: { onYes: () => void }) {
-  const [noPos, setNoPos] = useState({ x: 0, y: 0 });
   const [noCount, setNoCount] = useState(0);
   const [yesScale, setYesScale] = useState(1);
 
-  const moveNo = useCallback(() => {
+  const handleNoInteract = useCallback(() => {
     const count = noCount + 1;
     setNoCount(count);
-    setYesScale((s) => Math.min(s + 0.15, 2));
-    const range = 120 + count * 10;
-    const nx = (Math.random() - 0.5) * range;
-    const ny = (Math.random() - 0.5) * range;
-    setNoPos({ x: nx, y: ny });
+    setYesScale((s) => Math.min(s + 0.3, 4.5));
   }, [noCount]);
 
   const noLabel = NO_MESSAGES[Math.min(noCount, NO_MESSAGES.length - 1)] ?? "Nope!";
@@ -184,26 +179,24 @@ function AskStep({ onYes }: { onYes: () => void }) {
       <h1 className="text-2xl font-black text-pink-500 mb-2">Would you like to go out with me?</h1>
       <p className="text-gray-400 text-sm mb-10">I promise to be a really good one 🤝</p>
 
-      <div className="relative flex items-center justify-center gap-4 h-16">
-        {/* Yes */}
+      <div className="relative flex items-center justify-center gap-4 h-20 overflow-hidden">
+        {/* No — stays in place, gets swallowed by growing Yes */}
+        <button
+          onMouseEnter={handleNoInteract}
+          onTouchStart={handleNoInteract}
+          className="px-7 py-3 rounded-full bg-pink-100 text-pink-400 font-bold text-lg shadow-md"
+        >
+          {noLabel}
+        </button>
+
+        {/* Yes — grows bigger each time No is hovered, eventually covers it */}
         <motion.button
           onClick={onYes}
           animate={{ scale: yesScale }}
           transition={{ type: "spring", stiffness: 400, damping: 15 }}
-          className="px-7 py-3 rounded-full bg-green-400 hover:bg-green-500 text-white font-bold text-lg shadow-md transition-colors flex items-center gap-2"
+          className="relative z-10 px-7 py-3 rounded-full bg-green-400 hover:bg-green-500 text-white font-bold text-lg shadow-md flex items-center gap-2"
         >
           Yes 🎉
-        </motion.button>
-
-        {/* No — runs away */}
-        <motion.button
-          animate={{ x: noPos.x, y: noPos.y }}
-          transition={{ type: "spring", stiffness: 500, damping: 20 }}
-          onMouseEnter={moveNo}
-          onTouchStart={moveNo}
-          className="px-7 py-3 rounded-full bg-pink-100 hover:bg-pink-200 text-pink-400 font-bold text-lg shadow-md transition-colors"
-        >
-          {noLabel}
         </motion.button>
       </div>
 

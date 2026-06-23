@@ -200,29 +200,27 @@ function AskStep({ onYes }: { onYes: () => void }) {
       <p className="text-gray-400 text-sm mb-10">I promise to be a really good one 🤝</p>
 
       <div className="relative flex items-center justify-center gap-4 h-16">
-        {/* Yes — sits on top once No hides behind it */}
-        <motion.button
-          ref={yesRef}
-          onClick={onYes}
-          animate={{ scale: yesScale }}
-          transition={{ type: "spring", stiffness: 400, damping: 15 }}
-          style={{ position: "relative", zIndex: 10 }}
-          className="px-7 py-3 rounded-full bg-green-400 hover:bg-green-500 text-white font-bold text-lg shadow-md transition-colors flex items-center gap-2"
-        >
-          Yes 🎉
-        </motion.button>
-
-        {/* No — runs away, then slides behind Yes on hover 8 */}
+        {/* No first in DOM so Yes (rendered after) naturally paints on top */}
         <motion.button
           ref={noRef}
           animate={{ x: noPos.x, y: noPos.y }}
           transition={{ type: "spring", stiffness: 500, damping: 20 }}
           onMouseEnter={hiddenBehindYes ? undefined : moveNo}
           onTouchStart={hiddenBehindYes ? undefined : moveNo}
-          style={{ position: "relative", zIndex: 5 }}
           className="px-7 py-3 rounded-full bg-pink-100 hover:bg-pink-200 text-pink-400 font-bold text-lg shadow-md transition-colors"
         >
           {noLabel}
+        </motion.button>
+
+        {/* Yes — rendered after No so it paints on top */}
+        <motion.button
+          ref={yesRef}
+          onClick={onYes}
+          animate={{ scale: yesScale }}
+          transition={{ type: "spring", stiffness: 400, damping: 15 }}
+          className="px-7 py-3 rounded-full bg-green-400 hover:bg-green-500 text-white font-bold text-lg shadow-md transition-colors flex items-center gap-2"
+        >
+          Yes 🎉
         </motion.button>
       </div>
 

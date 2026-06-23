@@ -168,12 +168,11 @@ function AskStep({ onYes }: { onYes: () => void }) {
   const handleNoInteract = useCallback(() => {
     const count = noCount + 1;
     setNoCount(count);
-    setYesScale((s) => Math.min(s + 0.3, 4.5));
-    // Move No away but keep it within a shrinking range so Yes catches up
-    const range = Math.max(60 - count * 8, 0);
+    setYesScale((s) => Math.min(s + 0.25, 4));
+    const range = 100 + count * 15;
     setNoPos({
-      x: (Math.random() - 0.5) * range * 2,
-      y: (Math.random() - 0.5) * range,
+      x: (Math.random() - 0.5) * range,
+      y: (Math.random() - 0.5) * range * 0.6,
     });
   }, [noCount]);
 
@@ -186,8 +185,18 @@ function AskStep({ onYes }: { onYes: () => void }) {
       <h1 className="text-2xl font-black text-pink-500 mb-2">Would you like to go out with me?</h1>
       <p className="text-gray-400 text-sm mb-10">I promise to be a really good one 🤝</p>
 
-      <div className="relative flex items-center justify-center gap-4 h-20 overflow-hidden">
-        {/* No — runs away but movement range shrinks; eventually swallowed by Yes */}
+      <div className="relative flex items-center justify-center gap-4 h-16">
+        {/* Yes — grows bigger each time No is hovered */}
+        <motion.button
+          onClick={onYes}
+          animate={{ scale: yesScale }}
+          transition={{ type: "spring", stiffness: 400, damping: 15 }}
+          className="relative z-10 px-7 py-3 rounded-full bg-green-400 hover:bg-green-500 text-white font-bold text-lg shadow-md flex items-center gap-2"
+        >
+          Yes 🎉
+        </motion.button>
+
+        {/* No — runs away; Yes eventually grows large enough to cover it */}
         <motion.button
           animate={{ x: noPos.x, y: noPos.y }}
           transition={{ type: "spring", stiffness: 500, damping: 20 }}
@@ -196,16 +205,6 @@ function AskStep({ onYes }: { onYes: () => void }) {
           className="px-7 py-3 rounded-full bg-pink-100 text-pink-400 font-bold text-lg shadow-md"
         >
           {noLabel}
-        </motion.button>
-
-        {/* Yes — grows bigger each time No is hovered, eventually covers it */}
-        <motion.button
-          onClick={onYes}
-          animate={{ scale: yesScale }}
-          transition={{ type: "spring", stiffness: 400, damping: 15 }}
-          className="relative z-10 px-7 py-3 rounded-full bg-green-400 hover:bg-green-500 text-white font-bold text-lg shadow-md flex items-center gap-2"
-        >
-          Yes 🎉
         </motion.button>
       </div>
 

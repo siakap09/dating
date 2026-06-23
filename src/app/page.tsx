@@ -4,7 +4,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
-type Step = "ask" | "yay" | "activity" | "location" | "contact" | "sent";
+type Step = "envelope" | "ask" | "yay" | "activity" | "location" | "contact" | "sent";
 
 // ─── Background floating dots ─────────────────────────────────────────────────
 const DOTS = [
@@ -102,6 +102,47 @@ function IconCircle({ children }: { children: React.ReactNode }) {
   );
 }
 
+// ─── Step 0: Envelope ─────────────────────────────────────────────────────────
+function EnvelopeStep({ onOpen }: { onOpen: () => void }) {
+  const [opened, setOpened] = useState(false);
+
+  const handleOpen = () => {
+    setOpened(true);
+    setTimeout(onOpen, 700);
+  };
+
+  return (
+    <Card>
+      <motion.div
+        className="flex flex-col items-center gap-6"
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+      >
+        <motion.div
+          animate={opened ? { scale: [1, 1.2, 0.8], rotate: [0, -5, 5, 0] } : {}}
+          transition={{ duration: 0.5 }}
+          className="text-8xl select-none"
+        >
+          {opened ? "💌" : "✉️"}
+        </motion.div>
+        <div>
+          <h1 className="text-2xl font-black text-pink-500 mb-2">You&apos;ve got a letter!</h1>
+          <p className="text-gray-400 text-sm">Someone sent you something special 💜</p>
+        </div>
+        <motion.button
+          onClick={handleOpen}
+          whileTap={{ scale: 0.95 }}
+          whileHover={{ scale: 1.05 }}
+          disabled={opened}
+          className="px-8 py-4 rounded-2xl bg-gradient-to-r from-pink-400 to-purple-400 text-white font-bold text-lg shadow-lg disabled:opacity-60 transition-all"
+        >
+          {opened ? "Opening... 💫" : "Open the envelope 💌"}
+        </motion.button>
+      </motion.div>
+    </Card>
+  );
+}
+
 // ─── Step 1: Ask ──────────────────────────────────────────────────────────────
 const NO_MESSAGES = [
   "Think again!",
@@ -139,8 +180,8 @@ function AskStep({ onYes }: { onYes: () => void }) {
 
   return (
     <Card>
-      <IconCircle>💜</IconCircle>
-      <h1 className="text-2xl font-black text-pink-500 mb-2">Will you be my friend?</h1>
+      <IconCircle>🤝</IconCircle>
+      <h1 className="text-2xl font-black text-pink-500 mb-2">Would you like to go out with me?</h1>
       <p className="text-gray-400 text-sm mb-10">I promise to be a really good one 🤝</p>
 
       <div className="relative flex items-center justify-center gap-4 h-16">
@@ -192,9 +233,9 @@ function YayStep({ onNext }: { onNext: () => void }) {
       <Confetti />
       <Card>
         <div className="flex justify-center gap-3 text-4xl mb-4">
-          <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.1, type: "spring" }}>💗</motion.span>
-          <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.25, type: "spring" }}>❤️</motion.span>
-          <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.4, type: "spring" }}>💜</motion.span>
+          <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.1, type: "spring" }}>🎉</motion.span>
+          <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.25, type: "spring" }}>🥳</motion.span>
+          <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.4, type: "spring" }}>✨</motion.span>
         </div>
         <motion.h1
           initial={{ opacity: 0, y: 10 }}
@@ -218,7 +259,7 @@ function YayStep({ onNext }: { onNext: () => void }) {
           transition={{ delay: 0.7 }}
           className="text-pink-400 font-bold text-base mt-1"
         >
-          New friendship unlocked! 🎊
+          This will be fun! 🎉✨🥳🎊💃
         </motion.p>
       </Card>
     </>
@@ -230,7 +271,7 @@ const ACTIVITIES = [
   { icon: "☕", label: "Coffee & Chat" },
   { icon: "🎬", label: "Movie Night" },
   { icon: "🍕", label: "Dinner Hangout" },
-  { icon: "🖼️", label: "Museum/Gallery" },
+  { icon: "🎆", label: "Fireshow" },
   { icon: "🌿", label: "Nature Walk" },
   { icon: "🎮", label: "Gaming Session" },
 ];
@@ -277,7 +318,7 @@ const LOCATIONS = [
   { icon: "📍", label: "Your favorite spot" },
   { icon: "✨", label: "My favorite spot" },
   { icon: "🎲", label: "Surprise me!" },
-  { icon: "💛", label: "We'll decide together" },
+  { icon: "🤝", label: "We'll decide together" },
 ];
 
 function LocationStep({ onNext }: { onNext: (val: string) => void }) {
@@ -376,7 +417,7 @@ function SentStep({ activity, location }: { activity: string; location: string }
 
 // ─── App ──────────────────────────────────────────────────────────────────────
 export default function Home() {
-  const [step, setStep] = useState<Step>("ask");
+  const [step, setStep] = useState<Step>("envelope");
   const [activity, setActivity] = useState("");
   const [location, setLocation] = useState("");
 
@@ -386,6 +427,12 @@ export default function Home() {
 
       <div className="relative z-10 w-full max-w-sm">
         <AnimatePresence mode="wait">
+          {step === "envelope" && (
+            <motion.div key="envelope">
+              <EnvelopeStep onOpen={() => setStep("ask")} />
+            </motion.div>
+          )}
+
           {step === "ask" && (
             <motion.div key="ask">
               <AskStep onYes={() => setStep("yay")} />

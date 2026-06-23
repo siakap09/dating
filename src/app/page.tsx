@@ -376,31 +376,73 @@ function LocationStep({ onNext }: { onNext: (val: string) => void }) {
 }
 
 // ─── Step 5: Contact ──────────────────────────────────────────────────────────
+const RIDE_NO_MESSAGES = [
+  "I'll go by myself",
+  "Really??",
+  "Are you sure?",
+  "Last chance!",
+  "Fine... 😤",
+];
+
 function ContactStep({ onNext }: { onNext: (val: string) => void }) {
-  const [contact, setContact] = useState("");
+  const [noPos, setNoPos] = useState({ x: 0, y: 0 });
+  const [noCount, setNoCount] = useState(0);
+  const [yesScale, setYesScale] = useState(1);
+  const yesRef = useRef<HTMLButtonElement>(null);
+  const noRef = useRef<HTMLButtonElement>(null);
+
+  const moveNo = useCallback(() => {
+    const count = noCount + 1;
+    setNoCount(count);
+    setYesScale((s) => Math.min(s + 0.15, 2));
+
+    if (count >= 8 && yesRef.current && noRef.current) {
+      const yr = yesRef.current.getBoundingClientRect();
+      const nr = noRef.current.getBoundingClientRect();
+      setNoPos((prev) => ({
+        x: prev.x + (yr.left + yr.width / 2 - (nr.left + nr.width / 2)),
+        y: prev.y + (yr.top + yr.height / 2 - (nr.top + nr.height / 2)),
+      }));
+    } else {
+      const range = 80 + noCount * 8;
+      setNoPos({
+        x: (Math.random() - 0.5) * range,
+        y: (Math.random() - 0.5) * range * 0.5,
+      });
+    }
+  }, [noCount]);
+
+  const noLabel = RIDE_NO_MESSAGES[Math.min(noCount, RIDE_NO_MESSAGES.length - 1)];
+  const hiddenBehindYes = noCount >= 8;
 
   return (
     <Card>
-      <IconCircle>💬</IconCircle>
-      <h1 className="text-2xl font-black text-gray-800 mb-1">How can I reach you?</h1>
-      <p className="text-gray-400 text-sm mb-6">Share your phone number or social media!</p>
+      <IconCircle>🚗</IconCircle>
+      <h1 className="text-2xl font-black text-pink-500 mb-2">Need a lift?</h1>
+      <p className="text-gray-400 text-sm mb-10">I can pick you up!</p>
 
-      <input
-        type="text"
-        placeholder="Phone, Instagram, etc..."
-        value={contact}
-        onChange={(e) => setContact(e.target.value)}
-        className="w-full border-2 border-gray-200 focus:border-pink-400 rounded-2xl px-4 py-3 text-gray-700 outline-none transition-colors text-sm mb-4"
-        onKeyDown={(e) => e.key === "Enter" && contact.trim() && onNext(contact)}
-      />
+      <div className="relative flex items-center justify-center gap-4 h-16">
+        <motion.button
+          ref={noRef}
+          animate={{ x: noPos.x, y: noPos.y }}
+          transition={{ type: "spring", stiffness: 500, damping: 20 }}
+          onMouseEnter={hiddenBehindYes ? undefined : moveNo}
+          onTouchStart={hiddenBehindYes ? undefined : moveNo}
+          className="px-7 py-3 rounded-full bg-pink-100 hover:bg-pink-200 text-pink-400 font-bold text-base shadow-md transition-colors whitespace-nowrap"
+        >
+          {noLabel}
+        </motion.button>
 
-      <button
-        onClick={() => contact.trim() && onNext(contact)}
-        disabled={!contact.trim()}
-        className="w-full py-4 rounded-2xl bg-pink-400 hover:bg-pink-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold text-base transition-colors flex items-center justify-center gap-2"
-      >
-        Send 🤙
-      </button>
+        <motion.button
+          ref={yesRef}
+          onClick={() => onNext("Pick me up")}
+          animate={{ scale: yesScale }}
+          transition={{ type: "spring", stiffness: 400, damping: 15 }}
+          className="px-7 py-3 rounded-full bg-green-400 hover:bg-green-500 text-white font-bold text-base shadow-md transition-colors flex items-center gap-2 whitespace-nowrap"
+        >
+          Pick me up 🚗
+        </motion.button>
+      </div>
     </Card>
   );
 }

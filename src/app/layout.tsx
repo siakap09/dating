@@ -10,7 +10,7 @@ const nunito = Nunito({
 
 export const metadata: Metadata = {
   title: "Be My Friend? 💜",
-  description: "A fun friend invitation",
+  description: "A fun friend invitation 🎉",
 };
 
 export default function RootLayout({
